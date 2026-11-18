@@ -38,3 +38,28 @@ test("each turn carries one style request without accumulating earlier copies", 
     );
   }
 });
+
+import { BEATS, pickBeat, buildTurnNote } from "../src/persona.js";
+
+test("pickBeat respects weights, never repeats the avoided beat", () => {
+  assert.equal(pickBeat(() => 0).id, BEATS[0].id);
+  assert.equal(pickBeat(() => 0.999999).id, BEATS.at(-1).id);
+  for (let i = 0; i < 200; i += 1) {
+    assert.notEqual(pickBeat(Math.random, "singkat").id, "singkat");
+  }
+});
+
+test("turn note blocks repeated opener and trailing question", () => {
+  const note = buildTurnNote(
+    [{ role: "assistant", content: "Nn. Mau ikut sepedaan?" }],
+    BEATS[0],
+  );
+  assert.match(note, /dibuka dengan "Nn\. Mau"/);
+  assert.match(note, /jangan bertanya/);
+  assert.doesNotMatch(buildTurnNote([], BEATS[0]), /dibuka dengan/);
+});
+
+test("persona stays free of the structure markers it forbids", () => {
+  assert.ok(!SHIROKO_PERSONA.includes("Pesan Sensei (string JSON):"));
+  assert.ok(BEATS.every((b) => !b.text.includes("Pesan Sensei (string JSON):")));
+});
