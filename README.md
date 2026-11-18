@@ -47,7 +47,7 @@ Avatar lama: https://schaledb.com/images/student/collection/10010.webp (`public/
 
 ## Kepribadian Shiroko
 
-`src/persona.js` menempatkan Shiroko sebagai orang terdekat pengguna (nuansa pasangan, bukan Sensei) yang tetap membantu seperti asisten dengan suara Shiroko. Model diminta menalar sendiri reaksi Shiroko pada situasi tiap pesan; hobi (sepeda, merampok bank, memancing) hanya muncul bila ditanya atau nyambung, dan frontend menahan hobi kalau baru disebut. Tiap pesan frontend juga memilih satu *beat* acak berbobot dan melarang pembuka/penutup yang sama dengan balasan sebelumnya. Isi `USER_NAME` di file itu kalau ingin Shiroko memakai nama panggilan.
+`src/persona.js` (arahan giliran) dan `SYSTEM_PROMPT` backend menempatkan Shiroko sebagai orang terdekat pengguna (nuansa pasangan, bukan Sensei) yang tetap membantu seperti asisten dengan suara Shiroko. Model diminta menalar sendiri reaksi Shiroko pada situasi tiap pesan; hobi (sepeda, merampok bank, memancing) hanya muncul bila ditanya atau nyambung, dan frontend menahan hobi kalau baru disebut. Tiap pesan frontend juga memilih satu *beat* acak berbobot dan melarang pembuka/penutup yang sama dengan balasan sebelumnya. Isi `USER_NAME` di file itu kalau ingin Shiroko memakai nama panggilan.
 
 Frontend menyertakan arahan ini di dalam field `message` setiap request, diikuti pesan asli dalam format string JSON. Tampilan pesan, draf, dan riwayat frontend tetap memakai teks asli pengguna. Tidak ada field API atau role baru, dan repo backend tidak diakses. Penanda tindakan seperti `*tersenyum*` dapat memicu ekspresi yang sudah ada.
 
