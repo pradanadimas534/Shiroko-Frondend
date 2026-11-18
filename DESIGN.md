@@ -1,30 +1,24 @@
-# Design Direction: Blue Archive Visual Novel Chat
+# Design Direction: Interactive Sunaookami Shiroko Visual Novel HUD
 
 ## Identity & Mood
-- **Theme**: Blue Archive Visual Novel (Abydos High School - Sunaookami Shiroko).
-- **Mood**: High-tech anime visual novel, clean, calm, crisp, cinematic storytelling.
-- **Personality**: Shiroko (calm, soft-spoken, observant student of Abydos).
+- **Theme**: Blue Archive Interactive Character Scene (Abydos High School · Sunaookami Shiroko).
+- **Mood**: Clean, atmospheric anime visual novel with direct 2D character interaction, dynamic time-of-day room lighting, and a tactical Schale dialogue HUD.
 
 ## Palette
-- **Deep Navy Base**: `#182737` / `#0f2234`
-- **Surface & Panel Glass**: `#ebf8fbf2` / `#f2f3f5` with border `#bceaf6` / `#8cb9cb`
-- **Cyan Accent**: `#59f0fe` / `#87c9e5` / `#1480a3`
-- **Primary Text**: `#ffffff` (on dialogue frame), `#364a63` (on cards & buttons)
-- **Muted Text**: `#87c9e5` / `#78949f`
+- **Deep Navy Base**: `#0b1926` / `#0f2132`
+- **Elevated Surface**: `#152b40`
+- **Cyan Accent**: `#38d6f5`
+- **Primary Action**: `#106b89` (`5.68:1` contrast with `#f4f9fc` AA PASS)
+- **Primary Text**: `#f4f9fc`
+- **Secondary Text**: `#9abbd0`
 
-## Typography
-- **Primary Font**: `Noto Sans`, sans-serif
-- **Weights**: 400 (Regular), 500 (Medium), 600 (SemiBold), 700 (Bold)
-- **Style**: Italic accents on top control buttons (`Noto Sans:SemiBold Italic`)
-
-## Key Motifs & Shapes
-- **Dialogue Panel**: Blue Archive authentic bottom HUD frame (`dialogue-box.png`) with crisp rule divider (`dialogue-rule.svg`) and bobbing continue indicator (`dialogue-next.svg`).
-- **Control Buttons**: Slanted polygon parallelogram pills (`control-btn.svg`).
-- **Choice Button**: Authentic choice prompt box (`choice-box.png`) centered on screen.
-- **Modals / Menu Cards**: Skewed glass cards (`transform: skew(-4deg)`) with upright contents (`transform: skew(4deg)`).
+## Interactive Features
+- **Interactive Character Sprite**: 18 live Shiroko expressions (`/expressions/Shiroko_00.png` – `Shiroko_17.png`) that respond both to AI dialogue emotion and direct tap/click interaction (headpat / touch reactions).
+- **Dynamic Time-of-Day Background**: Abydos classroom lighting changes automatically with local time (morning, day, evening, lit night, and late night).
+- **Visual Novel Dialogue & Reply Dock**: Typewriter dialogue box with narration formatting and an inline reply form for Sensei.
+- **Compact Settings Menu**: Single top-right gear button leading to **Riwayat Chat** and **Tentang AI**.
 
 ## Dials
 - **ENERGY**: 2
 - **RHYTHM**: 2
 - **MOTION**: 2
-
