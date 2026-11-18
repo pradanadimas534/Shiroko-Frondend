@@ -416,7 +416,7 @@ export default function App() {
           ) : isReplying || !lastReply ? (
             <section
               className="dialogue dialogue--reply"
-              aria-label="Kolom balasan Sensei"
+              aria-label="Kolom balasanmu"
             >
               <div className="dialogue__content">
                 <header className="dialogue__header">
@@ -425,9 +425,9 @@ export default function App() {
                       className="dialogue__accent-bar dialogue__accent-bar--sensei"
                       aria-hidden="true"
                     />
-                    <h1>Sensei</h1>
+                    <h1>Kamu</h1>
                     <span className="dialogue__affiliation">
-                      Schale · Penasihat
+                      Orang tersayang Shiroko
                     </span>
                   </div>
                   <span className="dialogue__meta">{input.length}/400</span>
@@ -563,7 +563,7 @@ export default function App() {
               {messages.map((m) => (
                 <article className={`history-message ${m.role}`} key={m.id}>
                   <header>
-                    <strong>{m.role === "model" ? "Shiroko" : "Sensei"}</strong>
+                    <strong>{m.role === "model" ? "Shiroko" : "Kamu"}</strong>
                     <time>{timeLabel(m.time)}</time>
                   </header>
                   <p>{m.text}</p>

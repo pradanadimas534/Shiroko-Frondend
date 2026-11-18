@@ -7,7 +7,7 @@ test("persona uses the existing message/history contract without modifying histo
     Object.freeze({ role: "user", content: "Halo, Shiroko." }),
     Object.freeze({
       role: "assistant",
-      content: "Sensei, mau jalan sebentar?",
+      content: "Mau jalan sebentar?",
     }),
   ]);
   const payload = buildChatRequest(
@@ -19,7 +19,7 @@ test("persona uses the existing message/history contract without modifying histo
   assert.notEqual(payload.history, history);
   assert.ok(payload.message.startsWith(SHIROKO_PERSONA));
   assert.equal(
-    JSON.parse(payload.message.split("Pesan Sensei (string JSON):\n").at(-1)),
+    JSON.parse(payload.message.split("Pesan terbaru darinya (string JSON):\n").at(-1)),
     'Aku capek.\nBisa temani "sebentar"?',
   );
 });
@@ -59,7 +59,21 @@ test("turn note blocks repeated opener and trailing question", () => {
   assert.doesNotMatch(buildTurnNote([], BEATS[0]), /dibuka dengan/);
 });
 
+test("persona no longer calls the user Sensei and holds back hobbies", () => {
+  assert.match(SHIROKO_PERSONA, /jangan pernah memanggilnya Sensei/);
+  assert.ok(BEATS.every((b) => !/sepeda|rampok/i.test(b.text)));
+  const note = buildTurnNote(
+    [{ role: "assistant", content: "Aku baru selesai sepeda." }],
+    BEATS[0],
+  );
+  assert.match(note, /Jangan bahas sepeda/);
+  assert.doesNotMatch(
+    buildTurnNote([{ role: "assistant", content: "Hai." }], BEATS[0]),
+    /Jangan bahas sepeda/,
+  );
+});
+
 test("persona stays free of the structure markers it forbids", () => {
-  assert.ok(!SHIROKO_PERSONA.includes("Pesan Sensei (string JSON):"));
-  assert.ok(BEATS.every((b) => !b.text.includes("Pesan Sensei (string JSON):")));
+  assert.ok(!SHIROKO_PERSONA.includes("Pesan terbaru darinya (string JSON):"));
+  assert.ok(BEATS.every((b) => !b.text.includes("Pesan terbaru darinya (string JSON):")));
 });

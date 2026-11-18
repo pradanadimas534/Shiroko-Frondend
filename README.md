@@ -30,7 +30,7 @@ Respons lama `{ reply }` tetap didukung tanpa perubahan backend. Frontend membac
 Metadata `emotion` opsional diutamakan bila ada, contoh:
 
 ```json
-{ "reply": "Nn. Aku kesal, Sensei.", "emotion": "annoyed" }
+{ "reply": "Nn. Aku kesal.", "emotion": "annoyed" }
 ```
 
 Nilai tersedia: `neutral`, `neutral_alt`, `talking`, `happy`, `confused`, `pouting`, `angry`, `surprised`, `eyes_closed`, `sad`, `mildly_angry`, `annoyed`, `skeptical`, `skeptical_2`, `skeptical_3`, `crying`, `crying_alt`, serta status `thinking`. Alias bahasa Indonesia juga diterima. Emosi dasar `neutral`, `crying`, dan `skeptical` memakai rotasi varian; key varian khusus seperti `skeptical_2` memilih gambar tersebut. `unassigned` tidak digunakan otomatis.
@@ -47,9 +47,9 @@ Avatar lama: https://schaledb.com/images/student/collection/10010.webp (`public/
 
 ## Kepribadian Shiroko
 
-`src/persona.js` berisi lembar karakter Shiroko (watak pendiam, datar, sulit ditebak; humor serius soal sepeda dan ide merampok bank; perhatian lewat tindakan kecil) beserta contoh nada. Tiap pesan, frontend juga memilih satu *beat* acak berbobot (jawab sangat singkat, melayang ke satu detail, jeda, canggung, dan seterusnya) serta melarang pembuka dan penutup yang sama dengan balasan sebelumnya. Unsur acak dibuat di frontend karena model bahasa tidak benar-benar acak. Pilihan bahasa Indonesia, panjang jawaban, dan penanda tindakan merupakan adaptasi untuk aplikasi ini.
+`src/persona.js` menempatkan Shiroko sebagai orang terdekat pengguna (nuansa pasangan, bukan Sensei) yang tetap membantu seperti asisten dengan suara Shiroko. Model diminta menalar sendiri reaksi Shiroko pada situasi tiap pesan; hobi (sepeda, merampok bank, memancing) hanya muncul bila ditanya atau nyambung, dan frontend menahan hobi kalau baru disebut. Tiap pesan frontend juga memilih satu *beat* acak berbobot dan melarang pembuka/penutup yang sama dengan balasan sebelumnya. Isi `USER_NAME` di file itu kalau ingin Shiroko memakai nama panggilan.
 
-Frontend menyertakan arahan ini di dalam field `message` setiap request, diikuti pesan asli dalam format string JSON. Tampilan pesan, draf, dan riwayat frontend tetap memakai teks asli Sensei. Tidak ada field API atau role baru, dan repo backend tidak diakses. Penanda tindakan seperti `*tersenyum*` dapat memicu ekspresi yang sudah ada.
+Frontend menyertakan arahan ini di dalam field `message` setiap request, diikuti pesan asli dalam format string JSON. Tampilan pesan, draf, dan riwayat frontend tetap memakai teks asli pengguna. Tidak ada field API atau role baru, dan repo backend tidak diakses. Penanda tindakan seperti `*tersenyum*` dapat memicu ekspresi yang sudah ada.
 
 Ini arahan pada tingkat pesan pengguna, bukan perubahan system prompt backend. Efektivitasnya bergantung pada instruksi, pembatasan panjang, dan pemrosesan pesan di backend. Payload sedikit lebih panjang pada setiap request. Tes lokal memverifikasi pengiriman arahan dan integritas riwayat menggunakan respons tiruan; kesetiaan kepribadian dari model live belum diverifikasi.
 
