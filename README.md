@@ -1,4 +1,4 @@
-﻿# MomoTalk — Shiroko
+# MomoTalk — Shiroko
 
 > Status sementara: karakter dikunci ke **Netral 1** (Shiroko_00.png) selama pengguna memperbaiki aset. Pergantian otomatis dan menu pratinjau ekspresi dinonaktifkan; aset dan resolver tetap disimpan untuk diaktifkan lagi nanti. Animasi pantulan awal balasan tetap aktif. Bagian dokumentasi 18 ekspresi di bawah menjelaskan fitur yang sementara dinonaktifkan.
 
