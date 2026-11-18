@@ -16,14 +16,6 @@ const timeLabel = (time) =>
     minute: "2-digit",
   }).format(time instanceof Date ? time : new Date(time));
 
-const TOUCH_REACTIONS = [
-  "Nn... Tangan Sensei hangat. Terima kasih.",
-  "Eh? Ada apa, Sensei? Tiba-tiba menyentuh kepalaku...",
-  "Nn. Aku selalu siap mendengarkan kapan pun Sensei butuh teman bicara.",
-  "S-Sensei... jangan menyentuh telinga serigalaku tiba-tiba, agak geli.",
-  "Sensei tidak sedang kelelahan, kan? Jangan terlalu memaksakan diri.",
-];
-
 function Icon({ name }) {
   const paths = {
     close: <path d="m6 6 12 12M18 6 6 18" />,
@@ -220,10 +212,6 @@ export default function App() {
   const [error, setError] = useState(null);
   const [assetError, setAssetError] = useState(false);
   const [panel, setPanel] = useState(null);
-  const [touchState, setTouchState] = useState(null);
-  const touchIndexRef = useRef(0);
-  const touchTimerRef = useRef(null);
-  const touchSpeakTimerRef = useRef(null);
 
   const animated = !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
@@ -234,8 +222,7 @@ export default function App() {
 
   // Shiroko_02 saat bicara, Shiroko_01 saat idle / diam
   const isSpeaking =
-    (!isReplying && !loading && Boolean(lastReply) && isDialogueSpeaking) ||
-    Boolean(touchState?.speaking);
+    !isReplying && !loading && Boolean(lastReply) && isDialogueSpeaking;
   const currentSprite = isSpeaking ? TALK_SPRITE : IDLE_SPRITE;
 
   useEffect(() => {
@@ -255,8 +242,6 @@ export default function App() {
     window.addEventListener("resize", resize);
     return () => {
       requestRef.current?.abort();
-      clearTimeout(touchTimerRef.current);
-      clearTimeout(touchSpeakTimerRef.current);
       viewport?.removeEventListener("resize", resize);
       window.removeEventListener("resize", resize);
     };
@@ -280,29 +265,6 @@ export default function App() {
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [panel]);
 
-  function handleInteractCharacter() {
-    if (loading) return;
-    const line =
-      TOUCH_REACTIONS[touchIndexRef.current % TOUCH_REACTIONS.length];
-    touchIndexRef.current += 1;
-    clearTimeout(touchTimerRef.current);
-    clearTimeout(touchSpeakTimerRef.current);
-    const key = Date.now();
-    setTouchState({
-      line,
-      speaking: true,
-      key,
-    });
-    touchSpeakTimerRef.current = setTimeout(() => {
-      setTouchState((prev) =>
-        prev && prev.key === key ? { ...prev, speaking: false } : prev,
-      );
-    }, 1400);
-    touchTimerRef.current = setTimeout(() => {
-      setTouchState(null);
-    }, 4200);
-  }
-
   async function handleSendMessage(e) {
     if (e) e.preventDefault();
     const textToSend = input.trim();
@@ -313,7 +275,6 @@ export default function App() {
     const timer = setTimeout(() => controller.abort(), 70000);
     const id = makeId();
     setError(null);
-    setTouchState(null);
     setIsDialogueSpeaking(false);
     setLoading(true);
     setIsReplying(false);
@@ -389,34 +350,15 @@ export default function App() {
       <div className="scene__background room-background" aria-hidden="true" />
       <div className="scene-shade" aria-hidden="true" />
 
-      {/* Interactive Shiroko Character Portrait (Shiroko_01 Idle / Shiroko_02 Bicara) */}
-      <div className="scene__character">
-        <button
-          type="button"
-          className="character-hitbox"
-          onClick={handleInteractCharacter}
-          aria-label="Sentuh untuk berinteraksi dengan Shiroko"
-          title="Sentuh Shiroko untuk berinteraksi"
-        >
-          <img
-            key={`${lastReply?.id || "idle"}-${touchState?.key || 0}`}
-            className={`character-portrait ${assetError ? "fallback" : "reply-bounce"}`}
-            src={assetError ? "/shiroko.webp" : currentSprite.file}
-            alt={isSpeaking ? "Shiroko sedang berbicara" : "Shiroko diam"}
-            onError={() => setAssetError(true)}
-          />
-        </button>
-
-        {touchState && (
-          <div
-            key={touchState.key}
-            className="character-reaction-bubble"
-            role="status"
-            aria-live="polite"
-          >
-            <p>{touchState.line}</p>
-          </div>
-        )}
+      {/* Shiroko Character Portrait (Shiroko_01 Idle / Shiroko_02 Bicara) */}
+      <div className="scene__character" aria-hidden="true">
+        <img
+          key={lastReply?.id || "idle"}
+          className={`character-portrait ${assetError ? "fallback" : "reply-bounce"}`}
+          src={assetError ? "/shiroko.webp" : currentSprite.file}
+          alt={isSpeaking ? "Shiroko sedang berbicara" : "Shiroko diam"}
+          onError={() => setAssetError(true)}
+        />
       </div>
 
       {/* Single Compact Settings Button at Top Right */}
@@ -506,7 +448,7 @@ export default function App() {
                         if (input.trim() && !loading) handleSendMessage(e);
                       }
                     }}
-                    placeholder="Bicara dengan Shiroko atau sentuh karakternya di layar... (Tekan Enter untuk kirim)"
+                    placeholder="Tulis pesan untuk Shiroko di sini... (Tekan Enter untuk kirim)"
                     rows={2}
                     maxLength={400}
                     disabled={loading}
