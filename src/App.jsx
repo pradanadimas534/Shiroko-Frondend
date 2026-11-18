@@ -1,11 +1,13 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { expressionDataset } from "./expressionDataset.js";
-import { selectExpression } from "./selectExpression.js";
 import { buildChatRequest } from "./persona.js";
 import { paginateDialogue } from "./dialogue.js";
 import { getSceneTime } from "./sceneTime.js";
 
 const API_BASE = import.meta.env.VITE_API_BASE || "";
+const IDLE_SPRITE = expressionDataset.Neutral_Calm; // Shiroko_01.png (Idle / Diam)
+const TALK_SPRITE = expressionDataset.Mild_Surprise; // Shiroko_02.png (Saat Bicara)
+
 const makeId = () =>
   Math.random().toString(36).slice(2) + Date.now().toString(36);
 const timeLabel = (time) =>
@@ -15,26 +17,11 @@ const timeLabel = (time) =>
   }).format(time instanceof Date ? time : new Date(time));
 
 const TOUCH_REACTIONS = [
-  {
-    emotion: "Soft_Smile",
-    line: "Nn... Tangan Sensei hangat. Terima kasih.",
-  },
-  {
-    emotion: "Mild_Surprise",
-    line: "Eh? Ada apa, Sensei? Tiba-tiba menyentuh kepalaku...",
-  },
-  {
-    emotion: "Neutral_Calm",
-    line: "Nn. Aku selalu siap mendengarkan kapan pun Sensei butuh teman bicara.",
-  },
-  {
-    emotion: "Grimace_Suppressed",
-    line: "S-Sensei... jangan menyentuh telinga serigalaku tiba-tiba, agak geli.",
-  },
-  {
-    emotion: "Empathetic_Concern",
-    line: "Sensei tidak sedang kelelahan, kan? Jangan terlalu memaksakan diri.",
-  },
+  "Nn... Tangan Sensei hangat. Terima kasih.",
+  "Eh? Ada apa, Sensei? Tiba-tiba menyentuh kepalaku...",
+  "Nn. Aku selalu siap mendengarkan kapan pun Sensei butuh teman bicara.",
+  "S-Sensei... jangan menyentuh telinga serigalaku tiba-tiba, agak geli.",
+  "Sensei tidak sedang kelelahan, kan? Jangan terlalu memaksakan diri.",
 ];
 
 function Icon({ name }) {
@@ -83,7 +70,7 @@ function Icon({ name }) {
   );
 }
 
-function Dialogue({ message, expressionLabel, onFinished, onReply, animated }) {
+function Dialogue({ message, onSpeakingChange, onFinished, onReply, animated }) {
   const pages = paginateDialogue(message.text, 120);
   const [page, setPage] = useState(0);
   const [visible, setVisible] = useState(0);
@@ -117,6 +104,26 @@ function Dialogue({ message, expressionLabel, onFinished, onReply, animated }) {
   }, [page, content.text, animated]);
 
   useEffect(() => {
+    if (content.narration) {
+      onSpeakingChange?.(false);
+      return;
+    }
+    if (!complete) {
+      onSpeakingChange?.(true);
+      return;
+    }
+    // Pertahankan Shiroko_02 sebentar jika kalimatnya sangat pendek (mis. "Nn.")
+    const holdTimer = setTimeout(() => {
+      onSpeakingChange?.(false);
+    }, 350);
+    return () => clearTimeout(holdTimer);
+  }, [complete, content.narration, onSpeakingChange]);
+
+  useEffect(() => {
+    return () => onSpeakingChange?.(false);
+  }, [onSpeakingChange]);
+
+  useEffect(() => {
     if (complete && page >= pages.length - 1) {
       onFinished?.();
     }
@@ -126,10 +133,12 @@ function Dialogue({ message, expressionLabel, onFinished, onReply, animated }) {
     if (e && e.stopPropagation) e.stopPropagation();
     if (!complete) {
       setVisible(content.text.length);
+      onSpeakingChange?.(false);
     } else if (page < pages.length - 1) {
       setVisible(0);
       setPage(page + 1);
     } else {
+      onSpeakingChange?.(false);
       onReply?.();
     }
   }
@@ -157,11 +166,6 @@ function Dialogue({ message, expressionLabel, onFinished, onReply, animated }) {
             </span>
           </div>
           <div className="dialogue__badges">
-            {expressionLabel && (
-              <span className="dialogue__meta dialogue__meta--emotion">
-                {expressionLabel}
-              </span>
-            )}
             {pages.length > 1 && (
               <span className="dialogue__meta">
                 {page + 1} / {pages.length}
@@ -211,6 +215,7 @@ export default function App() {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [isReplying, setIsReplying] = useState(true);
+  const [isDialogueSpeaking, setIsDialogueSpeaking] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [assetError, setAssetError] = useState(false);
@@ -218,6 +223,7 @@ export default function App() {
   const [touchState, setTouchState] = useState(null);
   const touchIndexRef = useRef(0);
   const touchTimerRef = useRef(null);
+  const touchSpeakTimerRef = useRef(null);
 
   const animated = !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
@@ -225,14 +231,19 @@ export default function App() {
   const inputRef = useRef(null);
 
   const lastReply = [...messages].reverse().find((m) => m.role === "model");
-  const activeEmotion =
-    touchState?.emotion || lastReply?.emotion || "Neutral";
-  const expression =
-    expressionDataset[activeEmotion] || expressionDataset.Neutral;
+
+  // Shiroko_02 saat bicara, Shiroko_01 saat idle / diam
+  const isSpeaking =
+    (!isReplying && !loading && Boolean(lastReply) && isDialogueSpeaking) ||
+    Boolean(touchState?.speaking);
+  const currentSprite = isSpeaking ? TALK_SPRITE : IDLE_SPRITE;
 
   useEffect(() => {
-    const img = new Image();
-    img.src = expressionDataset.Neutral.file;
+    // Preload Shiroko_01 (Idle) & Shiroko_02 (Bicara) agar transisi instan tanpa kedip
+    for (const sprite of [IDLE_SPRITE, TALK_SPRITE]) {
+      const img = new Image();
+      img.src = sprite.file;
+    }
     const viewport = window.visualViewport;
     const resize = () =>
       document.documentElement.style.setProperty(
@@ -245,15 +256,17 @@ export default function App() {
     return () => {
       requestRef.current?.abort();
       clearTimeout(touchTimerRef.current);
+      clearTimeout(touchSpeakTimerRef.current);
       viewport?.removeEventListener("resize", resize);
       window.removeEventListener("resize", resize);
     };
   }, []);
 
-  useEffect(() => setAssetError(false), [activeEmotion]);
+  useEffect(() => setAssetError(false), [currentSprite.id]);
 
   useEffect(() => {
     if (isReplying) {
+      setIsDialogueSpeaking(false);
       setTimeout(() => inputRef.current?.focus(), 60);
     }
   }, [isReplying]);
@@ -269,17 +282,25 @@ export default function App() {
 
   function handleInteractCharacter() {
     if (loading) return;
-    const nextReaction =
+    const line =
       TOUCH_REACTIONS[touchIndexRef.current % TOUCH_REACTIONS.length];
     touchIndexRef.current += 1;
     clearTimeout(touchTimerRef.current);
+    clearTimeout(touchSpeakTimerRef.current);
+    const key = Date.now();
     setTouchState({
-      ...nextReaction,
-      key: Date.now(),
+      line,
+      speaking: true,
+      key,
     });
+    touchSpeakTimerRef.current = setTimeout(() => {
+      setTouchState((prev) =>
+        prev && prev.key === key ? { ...prev, speaking: false } : prev,
+      );
+    }, 1400);
     touchTimerRef.current = setTimeout(() => {
       setTouchState(null);
-    }, 4500);
+    }, 4200);
   }
 
   async function handleSendMessage(e) {
@@ -293,6 +314,7 @@ export default function App() {
     const id = makeId();
     setError(null);
     setTouchState(null);
+    setIsDialogueSpeaking(false);
     setLoading(true);
     setIsReplying(false);
     setPanel(null);
@@ -332,13 +354,13 @@ export default function App() {
 
       const cleanReply = data.reply.trim();
 
+      setIsDialogueSpeaking(true);
       setMessages((prev) => [
         ...prev,
         {
           id: makeId(),
           role: "model",
           text: cleanReply,
-          emotion: selectExpression({ emotion: data.emotion, reply: cleanReply }),
           time: new Date(),
         },
       ]);
@@ -360,14 +382,14 @@ export default function App() {
 
   return (
     <main
-      className={`scene novel-scene emotion-${activeEmotion} time-${sceneTime}`}
+      className={`scene novel-scene time-${sceneTime}`}
       aria-label="Ruang interaksi Sunaookami Shiroko"
     >
       {/* Dynamic Time-of-Day Abydos Room Background */}
       <div className="scene__background room-background" aria-hidden="true" />
       <div className="scene-shade" aria-hidden="true" />
 
-      {/* Interactive Shiroko Character Portrait (Tap/Click to interact) */}
+      {/* Interactive Shiroko Character Portrait (Shiroko_01 Idle / Shiroko_02 Bicara) */}
       <div className="scene__character">
         <button
           type="button"
@@ -377,10 +399,10 @@ export default function App() {
           title="Sentuh Shiroko untuk berinteraksi"
         >
           <img
-            key={`${activeEmotion}-${lastReply?.id}-${touchState?.key || 0}`}
+            key={`${lastReply?.id || "idle"}-${touchState?.key || 0}`}
             className={`character-portrait ${assetError ? "fallback" : "reply-bounce"}`}
-            src={assetError ? "/shiroko.webp" : expression.file}
-            alt={`Ekspresi Shiroko: ${expression.label}`}
+            src={assetError ? "/shiroko.webp" : currentSprite.file}
+            alt={isSpeaking ? "Shiroko sedang berbicara" : "Shiroko diam"}
             onError={() => setAssetError(true)}
           />
         </button>
@@ -392,9 +414,6 @@ export default function App() {
             role="status"
             aria-live="polite"
           >
-            <span className="character-reaction-bubble__tag">
-              {expression.label}
-            </span>
             <p>{touchState.line}</p>
           </div>
         )}
@@ -469,12 +488,7 @@ export default function App() {
                       Schale · Penasihat
                     </span>
                   </div>
-                  <div className="dialogue__badges">
-                    <span className="dialogue__meta dialogue__meta--emotion">
-                      Shiroko: {expression.label}
-                    </span>
-                    <span className="dialogue__meta">{input.length}/400</span>
-                  </div>
+                  <span className="dialogue__meta">{input.length}/400</span>
                 </header>
                 <div className="dialogue__divider" aria-hidden="true" />
                 <form
@@ -524,7 +538,7 @@ export default function App() {
             <Dialogue
               key={lastReply.id}
               message={lastReply}
-              expressionLabel={expression.label}
+              onSpeakingChange={setIsDialogueSpeaking}
               onReply={() => setIsReplying(true)}
               animated={animated}
             />
@@ -611,11 +625,6 @@ export default function App() {
                     <time>{timeLabel(m.time)}</time>
                   </header>
                   <p>{m.text}</p>
-                  {m.role === "model" && m.emotion && (
-                    <small>
-                      {(expressionDataset[m.emotion] || expressionDataset.Neutral).label}
-                    </small>
-                  )}
                 </article>
               ))}
               {loading && (
