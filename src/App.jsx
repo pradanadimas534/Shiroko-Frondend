@@ -1,6 +1,5 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { expressionDataset } from "./expressionDataset.js";
-import { buildChatRequest } from "./persona.js";
 import { paginateDialogue } from "./dialogue.js";
 import { getSceneTime } from "./sceneTime.js";
 
@@ -295,7 +294,7 @@ export default function App() {
       const res = await fetch(`${API_BASE}/api/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(buildChatRequest(textToSend, history)),
+        body: JSON.stringify({ message: textToSend, history }),
         signal: controller.signal,
       });
 
