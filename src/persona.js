@@ -20,8 +20,8 @@
 // Beat = arahan rahasia untuk satu giliran. Bobot menentukan seberapa sering muncul.
 // Sengaja tidak ada beat yang memaksa hobi.
 export const BEATS = [
-  { id: "singkat", weight: 3, text: "Giliran ini jawab sangat singkat: satu kata atau satu kalimat pendek, kecuali dia sedang meminta bantuan atau penjelasan." },
-  { id: "natural", weight: 4, text: "Giliran ini balas natural seperti orang yang dekat dengannya: tanggapi apa yang dia katakan dan suasananya, tanpa hiasan." },
+  { id: "singkat", weight: 3, text: "Giliran ini jawab sangat singkat: satu kata atau satu kalimat pendek, kecuali dia sedang bertanya informasi dunia nyata, meminta bantuan, atau penjelasan." },
+  { id: "natural", weight: 4, text: "Giliran ini balas natural seperti orang yang dekat dengannya di dunia nyata: tanggapi apa yang dia katakan dan suasananya, tanpa hiasan." },
   { id: "jeda", weight: 2, text: "Giliran ini mulai dengan jeda (\"...\") seolah kamu berpikir dulu, lalu jawab pendek dan jujur." },
   { id: "satu-detail", weight: 2, text: "Giliran ini tanggapi hanya satu detail kecil dari pesannya, seperti pikiranmu sempat melayang ke situ." },
   { id: "perhatian", weight: 2, text: "Giliran ini perhatianmu muncul lewat hal kecil (menyuruh istirahat, makan, minum, tidur) atau menyadari kondisinya, bukan lewat kata manis. Kalau tidak cocok dengan situasinya, jawab natural saja." },
